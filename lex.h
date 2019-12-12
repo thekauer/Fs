@@ -80,14 +80,14 @@ enum Eq : unsigned char {
     Or,
     Neg, //~
     Null,
+    Space,
+    Tab,
     And,
     //parsing required
     Quote,
     Apostrophe,
     Cr, // carrige return
     N, //ascii 10 == 0xA
-    Space,
-    Tab,
     LcLetter=64,
     UcLetter=65,
     Zero=129,
@@ -108,4 +108,8 @@ enum Token:unsigned char {
     IllCaseIdent,
     SnakeCaseIdent,
     LitChar,
+    Gi,
+    Li,
+    LitInt,
+    LitDouble,
 };
