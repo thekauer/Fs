@@ -4,6 +4,17 @@
 #include <experimental/filesystem>
 #include <fstream>
 
+[[noreturn]] void error(int code,std::string msg);
+class Compiler {
+ std::vector<std::string> Warnings,Lints;
+ SourceManager sm();
+ struct CompilerOptions {
+     
+ };
+  Compiler()=default;
+  void Compile(std::experimental::filesystem::path path);
+};
+
 class SourceManager {
     std::vector<FSFile> sources;
 public:
