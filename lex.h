@@ -31,3 +31,46 @@ class SourceLocation {
     INLINE char peek_nextnext();
     INLINE char peek_nth(int n);
 };
+
+
+enum Eq : char {
+    Discard=1,
+    LcLetter,
+    UcLetter,
+    Not,
+    Quote,
+    Hashtag,
+    Mod,
+    Apostrophe,
+    Lp,
+    Rp,
+    Mul,
+    Add,
+    Sub,
+    Comma,
+    Dot,
+    Div,
+    Number,
+    DoubleDot,
+    SemiColon,
+    Gt, //<
+    Lt, // >
+    Eq,
+    Questionmark, 
+    Lb, //[
+    Rb,// ]
+    Underscore,
+    Triangle, //^
+    Lc, //{
+    Rc, //}
+    Or,
+    Neg, //~
+    Null,
+    Cr, // carrige return
+    N, //ascii 10 == 0xA
+    Space,
+    Tab,
+    And
+};
+
+static const char eq[128] = {32,0,0,0,0,0,0,0,0,36,34,0,0,33,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,4,5,6,0,7,37,8,9,10,11,12,14,13,15,16,17,17,17,17,17,17,17,17,17,17,18,19,20,22,21,23,0,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,24,0,25,27,26,0,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,28,30,29,31,0};
