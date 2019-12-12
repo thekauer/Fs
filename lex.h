@@ -32,7 +32,7 @@ class Compiler {
 };
 
 
-
+//indentation should be a part of it
 class SourceLocation {
     public:
     FSFile& file;
@@ -48,9 +48,22 @@ class SourceLocation {
     INLINE char peek_nextnext();
     INLINE char peek_nth(int n);
 };
+class AstExpr {
+    public:
+    virtual ~AstExpr();
+};
 
 void cerror(int code,const SourceLocation& sl,const std::string& msg);
-unsigned char advance_token(SourceLocation& sl,int indent);
+unsigned char advance_token(SourceLocation& sl,int indent,HashedString*hs=nullptr);
+void parse(SourceLocation& sl);
+typedef AstExpr(*parser_fn)(const SourceLocation&,int,HashedString*);
+
+enum Keyword :unsigned char
+{
+    NotAKeyWord,
+    Fn,
+};
+Keyword is_kw(const HashedString& hs);
 
 enum Eq : unsigned char {
     Not=1,

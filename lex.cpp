@@ -1,7 +1,37 @@
 #include "lex.h"
 
+Keyword is_kw(const HashedString& hs) {
+    static const int len=1;
+    static const u32 Hashes[len]={HashedString::hash_str("fn")};
+    static const Keyword Kws[len]={Fn};
+    for(int i=0;i<len;i++) {
+        if(Hashes[i]==hs.hash) {
+            return Kws[i];
+        }
+    }
+    return NotAKeyWord;
+}
+
+void parse(SourceLocation& sl) {
+    int indent=0;
+    HashedString hs;
+    u8 token =advance_token(sl,indent,&hs);
+    Keyword kw= is_kw(hs);
+    switch(token) {
+        case SnakeCaseIdent:
+            if(kw!=NotAKeyWord) {
+                
+            } else { //its an identifier
+
+            }
+        default:
+            break;
+
+    }
+}
+//SKIP SPACES
 //make this return an llvm::Value* and a hashedstring and the new indent as well
-unsigned char advance_token(SourceLocation& sl,int indent) {
+unsigned char advance_token(SourceLocation& sl,int indent,HashedString *hs) {
     SourceLocation err_loc = sl;
     u8 c = eq[sl.pop()];
     int idc=0;
@@ -57,6 +87,7 @@ unsigned char advance_token(SourceLocation& sl,int indent) {
       while(((eq[sl.peek()]>63)||eq[sl.peek()]==Underscore)&&sl.can_iter()) {
           sl.pop();
       }
+        *hs=HashedString(std::string(err_loc.it,sl.it));
         return CamelCaseIdent;
     
     case LcLetter:
@@ -66,6 +97,7 @@ unsigned char advance_token(SourceLocation& sl,int indent) {
           if(eq[sl.peek()]==UcLetter)illcase=true;
           sl.pop();
       }
+        *hs=HashedString(std::string(err_loc.it,sl.it));
        //Warn Ill case
         return illcase?IllCaseIdent:SnakeCaseIdent;
 
@@ -117,11 +149,8 @@ void cerror(int code,const SourceLocation& sl,const std::string& msg) {
 void Compiler::compile(const std::string& path) {
     sm.open(path);
     SourceLocation sl(sm.sources[0]);
-    auto start=sl.it;
-    //std::cout << (int)advance_token(sl,0) << (int)advance_token(sl,0);
-    //advance_token(sl,0);advance_token(sl,0);
-    //while(sl.can_iter())std::cout << eq[sl.pop()] << " ";
-    while(sl.can_iter())std::cout << (int)advance_token(sl,0) << " ";
+    //while(sl.can_iter())std::cout << (int)advance_token(sl,0) << " ";
+    parse(sl);
 }
 
 SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),it(file.code.begin()),end(file.code.end()) {

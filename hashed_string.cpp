@@ -41,11 +41,15 @@ u32 HashedString::hash_str(std::string str)
 	return h;
 }
 
-HashedString::HashedString(std::string str) : hash(hash_str(str)){};
+HashedString::HashedString(std::string str) : str(str),hash(hash_str(str)){};
 bool HashedString::operator==(const HashedString other) const{
 	return hash == other.hash;
 }
 
 bool HashedString::operator!=(const HashedString other) const {
 	return hash != other.hash;
+}
+HashedString& HashedString::operator=(const HashedString& other) {
+	str=other.str;
+	hash=other.hash;
 }
