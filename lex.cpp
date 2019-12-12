@@ -7,6 +7,11 @@ SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),it(file
 
 }
 
+void SourceLocation::open(std::experimental::filesystem::path path) {
+    using namespace std::experimental::filesystem;
+    
+}
+
 INLINE constexpr char SourceLocation::peek(const int n=0) {
     switch (n)
     {
