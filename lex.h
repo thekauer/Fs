@@ -36,7 +36,7 @@ class Compiler {
 class SourceLocation {
     public:
     FSFile& file;
-    int line,col;
+    int line,col,indent;
     char current,next,nextnext;
     std::string::const_iterator it,end;
     SourceLocation(FSFile& file);
@@ -54,9 +54,11 @@ class AstExpr {
 };
 
 void cerror(int code,const SourceLocation& sl,const std::string& msg);
-unsigned char advance_token(SourceLocation& sl,int indent,HashedString*hs=nullptr);
+unsigned char advance_token(SourceLocation& sl,HashedString& hs);
 void parse(SourceLocation& sl);
-typedef AstExpr(*parser_fn)(const SourceLocation&,int,HashedString*);
+typedef AstExpr(*tparsefn)(const SourceLocation&,const HashedString&);
+AstExpr parse_fn(SourceLocation&,const HashedString&);
+AstExpr parse_fn_body(SourceLocation&);//pass in function context(args,generics...) as well
 
 enum Keyword :unsigned char
 {

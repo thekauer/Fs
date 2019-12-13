@@ -12,8 +12,9 @@ T match(T* arr,T val) {
 }
 */
 int main() {
-
+    
     auto compiler = Compiler();
     compiler.compile("main.fs");
+
     return 0;
 }

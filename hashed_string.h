@@ -10,7 +10,7 @@ public:
 	static u32 hash_str(std::string);
 	HashedString()=default;
 	HashedString(std::string str);
-	HashedString& operator=(const HashedString&);
+	void operator=(const HashedString&);
 	bool operator==(const HashedString) const;
 	bool operator!=(const HashedString) const;
 };

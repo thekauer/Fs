@@ -12,10 +12,44 @@ Keyword is_kw(const HashedString& hs) {
     return NotAKeyWord;
 }
 
-void parse(SourceLocation& sl) {
-    int indent=0;
+AstExpr parse_fn(SourceLocation& sl,const HashedString& kw) {
     HashedString hs;
-    u8 token =advance_token(sl,indent,&hs);
+    u8 token=advance_token(sl,hs);
+    //not an identifier
+    if(token>SnakeCaseIdent) {
+        //error fn must be followed by function name
+    }
+    HashedString function_name=hs;
+    //Add generic capability
+    token=advance_token(sl,hs);
+    if(token!=Lp) {
+        //err expected (
+    }
+    token=advance_token(sl,hs);
+    //Add Handle Args
+    if(token==Rp)  parse_fn_body(sl);
+}
+AstExpr parse_fn_body(SourceLocation& sl) {
+    HashedString hs;
+    u8 token =advance_token(sl,hs);
+    //token is an identifier
+    if(token<LitChar) { //Handle fncall
+        HashedString id=hs;
+        token=advance_token(sl,hs);
+        if(token==Lp) {
+            //Handle args,generics
+            token=advance_token(sl,hs);
+            if(token==Rp) {
+                //return fn call
+                
+            }
+        }
+    }
+}
+
+void parse(SourceLocation& sl) {
+    HashedString hs;
+    u8 token =advance_token(sl,hs);
     Keyword kw= is_kw(hs);
     switch(token) {
         case SnakeCaseIdent:
@@ -30,8 +64,8 @@ void parse(SourceLocation& sl) {
     }
 }
 //SKIP SPACES
-//make this return an llvm::Value* and a hashedstring and the new indent as well
-unsigned char advance_token(SourceLocation& sl,int indent,HashedString *hs) {
+//make this return an llvm::Value* and a hashedstring as well
+unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
     SourceLocation err_loc = sl;
     u8 c = eq[sl.pop()];
     int idc=0;
@@ -80,14 +114,14 @@ unsigned char advance_token(SourceLocation& sl,int indent,HashedString *hs) {
             if(eq[t]==Space)cerror(ERR_BOTH_TABS_AND_SPACES,err_loc,"Don't mix tabs and spaces!");
         }
 
-        if(idc>indent)return Gi;
-        if(idc<indent)return Li;
+        if(idc>sl.indent){sl.indent=idc;return Gi;}
+        if(idc<sl.indent){sl.indent=idc;return Li;}
         break;
     case UcLetter:
       while(((eq[sl.peek()]>63)||eq[sl.peek()]==Underscore)&&sl.can_iter()) {
           sl.pop();
       }
-        *hs=HashedString(std::string(err_loc.it,sl.it));
+        hs=HashedString(std::string(err_loc.it,sl.it));
         return CamelCaseIdent;
     
     case LcLetter:
@@ -97,7 +131,7 @@ unsigned char advance_token(SourceLocation& sl,int indent,HashedString *hs) {
           if(eq[sl.peek()]==UcLetter)illcase=true;
           sl.pop();
       }
-        *hs=HashedString(std::string(err_loc.it,sl.it));
+        hs=HashedString(std::string(err_loc.it,sl.it));
        //Warn Ill case
         return illcase?IllCaseIdent:SnakeCaseIdent;
 
@@ -149,11 +183,12 @@ void cerror(int code,const SourceLocation& sl,const std::string& msg) {
 void Compiler::compile(const std::string& path) {
     sm.open(path);
     SourceLocation sl(sm.sources[0]);
-    //while(sl.can_iter())std::cout << (int)advance_token(sl,0) << " ";
+    //HashedString hs;
+    //while(sl.can_iter())std::cout << (int)advance_token(sl,hs) << " ";
     parse(sl);
 }
 
-SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),it(file.code.begin()),end(file.code.end()) {
+SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
     current=*it;
     next=*(it+1);
     nextnext=*(it+2);

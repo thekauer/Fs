@@ -49,7 +49,7 @@ bool HashedString::operator==(const HashedString other) const{
 bool HashedString::operator!=(const HashedString other) const {
 	return hash != other.hash;
 }
-HashedString& HashedString::operator=(const HashedString& other) {
+void HashedString::operator=(const HashedString& other) {
 	str=other.str;
 	hash=other.hash;
 }
