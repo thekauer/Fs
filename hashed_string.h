@@ -6,7 +6,7 @@
 class HashedString {
 public:
 	u32 hash;
-	std::string str;
+	std::string str;//consider removing this
 	static u32 hash_str(std::string);
 	HashedString()=default;
 	HashedString(std::string str);
