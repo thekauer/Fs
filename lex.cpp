@@ -63,12 +63,13 @@ void parse(SourceLocation& sl) {
 
     }
 }
+//USEFUNCTIONS
 //SKIP SPACES
 //make this return an llvm::Value* and a hashedstring as well
 unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
     SourceLocation err_loc = sl;
     u8 c = eq[sl.pop()];
-    int idc=0;
+    int idc=0;//SAME AS sl.col.!!
     int val;//use llvm Value*
     double dval;
     bool f=false;
@@ -134,7 +135,7 @@ unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
         hs=HashedString(std::string(err_loc.it,sl.it));
        //Warn Ill case
         return illcase?IllCaseIdent:SnakeCaseIdent;
-
+	//handle Empty char
     case Apostrophe:
         u8 ch = eq[sl.pop()];
         if(ch==Backslash) {
