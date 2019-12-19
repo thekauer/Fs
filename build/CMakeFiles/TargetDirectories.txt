@@ -1,0 +1,3 @@
+/home/thekauer/Documents/fs/build/CMakeFiles/rebuild_cache.dir
+/home/thekauer/Documents/fs/build/CMakeFiles/fs.dir
+/home/thekauer/Documents/fs/build/CMakeFiles/edit_cache.dir

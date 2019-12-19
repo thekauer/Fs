@@ -1,4 +1,5 @@
 #pragma once
+#pragma clang diagnostics ignored "-Wextra-tokens"
 #ifndef __COMPATIBILITY_H__
 #define __COMPATIBILITY_H__
 #include <xmmintrin.h>
