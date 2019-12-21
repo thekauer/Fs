@@ -4,32 +4,11 @@
 #include "compatibility.h"
 #include "hashed_string.h"
 #include <fstream>
-#include "ercodes.h"
+#include "errcodes.h"
 #include <iostream>
-
-void error(int code,const std::string& msg);
-struct FSFile {
-    const std::string path;
-    const std::string code;
-    FSFile(const std::string path,const std::string code) :path(path),code(code){};
-};
-class SourceManager {
-public:
-    std::vector<FSFile> sources;
-    SourceManager()=default;
-    void open(const std::string& path);
-    //void open_(std::experimental::filesystem::path path);
-};
-class Compiler {
- std::vector<std::string> Warnings,Lints;
- SourceManager sm;
- struct CompilerOptions {
-     
- };
- public:
-  Compiler() : sm(SourceManager()){};
-  void compile(const std::string& path);
-};
+#include "source.h"
+#include <memory>
+#include <variant>
 
 
 //indentation should be a part of it
@@ -48,24 +27,129 @@ class SourceLocation {
     INLINE char peek_nextnext();
     INLINE char peek_nth(int n);
 };
-class AstExpr {
-    public:
-    virtual ~AstExpr();
-};
+
 
 void cerror(int code,const SourceLocation& sl,const std::string& msg);
-unsigned char advance_token(SourceLocation& sl,HashedString& hs);
-void parse(SourceLocation& sl);
-typedef AstExpr(*tparsefn)(const SourceLocation&,const HashedString&);
-AstExpr parse_fn(SourceLocation&,const HashedString&);
-AstExpr parse_fn_body(SourceLocation&);//pass in function context(args,generics...) as well
 
-enum Keyword :unsigned char
-{
-    NotAKeyWord,
-    Fn,
+struct Lexem {
+    enum type_ : unsigned char{
+        Kw,
+        Id,
+        Op,
+        Lit
+    } type;
+    Lexem(type_ type) : type(type){};
 };
-Keyword is_kw(const HashedString& hs);
+
+struct Kw  :Lexem{
+    enum kw_ : unsigned char {
+        NotAKw,
+        Fn
+    }kw;
+    Kw(kw_ kw) :kw(kw),Lexem(Lexem::Kw){};
+}; 
+struct Id : Lexem {
+    HashedString id;
+    enum type_ : unsigned char {    
+    CamelCaseIdent,
+    IllCaseIdent,
+    SnakeCaseIdent
+    } type;
+    Id(HashedString id,type_ type) : id(id),type(type),Lexem(Lexem::Id){};
+};
+struct Op : Lexem {
+    enum op_ : unsigned char {
+    Not=1,
+    Hashtag,
+    Mod,
+    Lp,
+    Rp,
+    Mul,
+    Add,
+    Sub,
+    Comma,
+    Dot,
+    Div,
+    DoubleDot,
+    SemiColon,
+    Gt, //<
+    Lt, // >
+    Eq,
+    Questionmark, 
+    Backslash,
+    Lb, //[
+    Rb,// ]
+    Underscore,
+    Triangle, //^
+    Lc, //{
+    Rc, //}
+    Or,
+    Neg, //~
+    Null,
+    Space,
+    Tab,
+    And,
+    Li,
+    Gi
+    } op;
+    Op(op_ op) :op(op),Lexem(Lexem::Op){};
+    Op(unsigned char ch) : op(static_cast<op_>(ch)),Lexem(Lexem::Op){};
+};
+
+struct Lit : Lexem {
+    enum type_ :unsigned char {
+        Char=0,
+        String,
+        I32,
+        I16,
+        I64,
+        Bool,
+        Float,
+        Double,
+        USize,
+        U8,
+        U16,
+        U32,
+        U64
+    } type;
+    std::variant<char,
+                 std::string,
+                 i32,
+                 i16,
+                 i64,
+                 bool,
+                 float,
+                 double,
+                 ptr,
+                 u8,
+                 u16,
+                 u32,
+                 u64
+                 > val;
+
+
+    template<typename T>
+    Lit(T s) : val(s),Lexem(Lexem::Lit){type = static_cast<type_>((unsigned char)val.index());};
+
+};
+
+
+
+
+
+class Lexer {
+public:
+    SourceLocation sl;
+    HashedString hs;
+    std::vector<std::unique_ptr<Lexem>> lexems;
+    Lexer(SourceLocation sl) : sl(sl){lex();};
+    char lex_escape(const char esc);
+    std::unique_ptr<Lexem> advance_token();
+    void lex();
+};
+
+
+Kw::kw_ is_kw(const HashedString& hs);
 
 enum Eq : unsigned char {
     Not=1,
@@ -119,9 +203,7 @@ static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
                                 LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,LcLetter,Lc,Or,Rc,Neg};
 
 enum Token:unsigned char {
-    CamelCaseIdent=32,
-    IllCaseIdent,
-    SnakeCaseIdent,
+    Identifier=32,
     LitChar,
     Gi,
     Li,

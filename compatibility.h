@@ -1,5 +1,4 @@
 #pragma once
-#pragma clang diagnostics ignored "-Wextra-tokens"
 #ifndef __COMPATIBILITY_H__
 #define __COMPATIBILITY_H__
 #include <xmmintrin.h>
@@ -28,9 +27,13 @@ void cpuid(int info[4], int InfoType){
 #endif
 */
 #include <stdint.h>
+typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 typedef uint8_t u8;
 typedef uintptr_t ptr;
+typedef int32_t i32;
+typedef int16_t i16;
+typedef int64_t i64;
 
 #endif

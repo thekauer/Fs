@@ -1,81 +1,24 @@
 #include "lex.h"
 
-Keyword is_kw(const HashedString& hs) {
+Kw::kw_ is_kw(const HashedString& hs) {
     static const int len=1;
     static const u32 Hashes[len]={HashedString::hash_str("fn")};
-    static const Keyword Kws[len]={Fn};
+    static const Kw::kw_ Kws[len]={Kw::Fn};
     for(int i=0;i<len;i++) {
         if(Hashes[i]==hs.hash) {
             return Kws[i];
         }
     }
-    return NotAKeyWord;
-}
-
-AstExpr parse_fn(SourceLocation& sl,const HashedString& kw) {
-    HashedString hs;
-    u8 token=advance_token(sl,hs);
-    //not an identifier
-    if(token>SnakeCaseIdent) {
-        //error fn must be followed by function name
-    }
-    HashedString function_name=hs;
-    //Add generic capability
-    token=advance_token(sl,hs);
-    if(token!=Lp) {
-        //err expected (
-    }
-    token=advance_token(sl,hs);
-    //Add Handle Args
-    if(token==Rp)  parse_fn_body(sl);
-}
-AstExpr parse_fn_body(SourceLocation& sl) {
-    HashedString hs;
-    u8 token =advance_token(sl,hs);
-    //token is an identifier
-    if(token<LitChar) { //Handle fncall
-        HashedString id=hs;
-        token=advance_token(sl,hs);
-        if(token==Lp) {
-            //Handle args,generics
-            token=advance_token(sl,hs);
-            if(token==Rp) {
-                //return fn call
-                
-            }
-        }
-    }
-}
-
-void parse(SourceLocation& sl) {
-    HashedString hs;
-    u8 token =advance_token(sl,hs);
-    Keyword kw= is_kw(hs);
-    switch(token) {
-        case SnakeCaseIdent:
-            if(kw!=NotAKeyWord) {
-                
-            } else { //its an identifier
-
-            }
-        default:
-            break;
-
-    }
+    return Kw::NotAKw;
 }
 //USEFUNCTIONS
 //SKIP SPACES
 //make this return an llvm::Value* and a hashedstring as well
-unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
+std::unique_ptr<Lexem> Lexer::advance_token() {
     SourceLocation err_loc = sl;
     u8 c = eq[sl.pop()];
-    int idc=0;//SAME AS sl.col.!!
-    int val;//use llvm Value*
-    double dval;
-    bool f=false;
-    std::string s;
     if(c<Quote) {
-        return c;
+        return std::make_unique<Op>(c);
     }
     switch (c)
     {
@@ -83,25 +26,10 @@ unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
     case Zero:
         //implement binary,hex,octal literals
         break;
-    case Number:
-        while(eq[sl.peek()]>127 || eq[sl.peek()]==Dot) {
-            if(eq[sl.peek()]==Dot)f=true;
-            sl.pop();
-        }
-        s = std::string(err_loc.it,sl.it);
-        if(!f) {
-            //Implement long long numbers and float...
-            val=std::stoi(s);
-            return LitInt;
-
-        }else {
-            dval = std::stod(s);
-            return LitDouble;
-        }
-        break;
 
         
-    case N:
+    case N: {
+        int idc=0;
         sl.line++;
         sl.col=1;
         while(eq[sl.peek()]==Space) {
@@ -115,15 +43,16 @@ unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
             if(eq[t]==Space)cerror(ERR_BOTH_TABS_AND_SPACES,err_loc,"Don't mix tabs and spaces!");
         }
 
-        if(idc>sl.indent){sl.indent=idc;return Gi;}
-        if(idc<sl.indent){sl.indent=idc;return Li;}
+        if(idc>sl.indent){sl.indent=idc;return std::make_unique<Op>(Op::Gi);}
+        if(idc<sl.indent){sl.indent=idc;return std::make_unique<Op>(Op::Li);}
         break;
+    }
     case UcLetter:
       while(((eq[sl.peek()]>63)||eq[sl.peek()]==Underscore)&&sl.can_iter()) {
           sl.pop();
       }
         hs=HashedString(std::string(err_loc.it,sl.it));
-        return CamelCaseIdent;
+        return std::make_unique<Id>(hs,Id::CamelCaseIdent);
     
     case LcLetter:
     case Underscore:
@@ -134,94 +63,67 @@ unsigned char advance_token(SourceLocation& sl,HashedString& hs) {
       }
         hs=HashedString(std::string(err_loc.it,sl.it));
        //Warn Ill case
-        return illcase?IllCaseIdent:SnakeCaseIdent;
+        return illcase?std::make_unique<Id>(hs,Id::IllCaseIdent):std::make_unique<Id>(hs,Id::SnakeCaseIdent);
 	//handle Empty char
     case Apostrophe:
         u8 ch = eq[sl.pop()];
         if(ch==Backslash) {
-            switch (sl.pop())
+           ch=lex_escape(sl.pop());
+        }
+        if(eq[sl.pop()]!=Apostrophe) {
+            cerror(ERR_TOO_LONG_CHAR_LITERAL,err_loc,"Char literal is too long.");
+        }
+        return std::make_unique<Lit>(ch);
+    }
+    return 0;
+}
+
+void Lexer::lex() {
+    while(sl.can_iter()) {
+        lexems.emplace_back(advance_token());
+    }
+}
+
+char Lexer::lex_escape(const char esc) {
+    auto err_loc = sl;
+     switch (esc)
             {
             case 'r':
-                ch='\r';
+                return '\r';
                 break;
             case 'n':
-                ch='\n';
+                return '\n';
                 break;
             case '\\':
-                ch='\\';
+                return '\\';
                 break;
             case 'b':
-                ch='\b';
+                return '\b';
                 break;
             case '\'':
-                ch='\'';
+                return '\'';
                 break;
             case '\"':
-                ch='\"';
+                return '\"';
                 break;
             case 't':
-                ch='\t';
+                return '\t';
                 break;
             case 'v':
-                ch='\v';
+                return '\v';
                 break;
             default:
                 cerror(ERR_UNKNOWN_ESCAPE,err_loc,"Unknown escape character.");
                 break;
             }
-        }
-        if(eq[sl.pop()]!=Apostrophe) {
-            cerror(ERR_TOO_LONG_CHAR_LITERAL,err_loc,"Char literal is too long.");
-        }
-        return LitChar;
-    }
-    return 0;
 }
+
 void cerror(int code,const SourceLocation& sl,const std::string& msg) {
     std::cout << "Error " + std::to_string(code) + " at line: " + std::to_string(sl.line) + " column: " + std::to_string(sl.col) + ". " + msg;
     std::exit(code);
 }
-void Compiler::compile(const std::string& path) {
-    sm.open(path);
-    SourceLocation sl(sm.sources[0]);
-    //HashedString hs;
-    //while(sl.can_iter())std::cout << (int)advance_token(sl,hs) << " ";
-    parse(sl);
-}
 
-SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
-    current=*it;
-    next=*(it+1);
-    nextnext=*(it+2);
 
-}
-
-void error(int code,const std::string& msg) {
-    std::cout << "Error: " + std::to_string(code) + " " + msg;
-    std::exit(code);
-}
-
-void SourceManager::open(const std::string& path) {
-    std::ifstream in(path);
-    std::string code((std::istreambuf_iterator<char>(in)),std::istreambuf_iterator<char>());
-    in.close();
-    sources.push_back(FSFile(path,code+"\0\0\0"));
-}
-/*
-void SourceManager::open_(std::experimental::filesystem::path path) {
-    using namespace std::experimental::filesystem;
-    if(!exists(path)) {
-        error(ERR_FILE_NOT_EXISTS,path.concat(" does not exists."));
-    }
-    if(path.extension()!="fs") {
-        error(ERR_ONLY_FS_FILES,"Only files with .fs extension are allowed!");
-    }
-    std::ifstream in(path);
-    std::string code((std::istreambuf_iterator<char>(in)),std::istreambuf_iterator<char>());
-    in.close();
-    sources.push_back(FSFile(path,code));
-}
-*/
 INLINE constexpr char SourceLocation::peek(const int n) {
     switch (n)
     {
@@ -271,3 +173,15 @@ INLINE char SourceLocation::pop(int n) {
 INLINE bool SourceLocation::can_iter() {
     return it!=end;
 }
+
+
+
+
+
+SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
+    current=*it;
+    next=*(it+1);
+    nextnext=*(it+2);
+
+}
+

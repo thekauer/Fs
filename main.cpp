@@ -2,7 +2,7 @@
 #include <vector>
 #include <experimental/filesystem>
 #include <memory>
-#include "lex.h"
+#include "compiler.h"
 
 /*
 template<typename S,typename T>

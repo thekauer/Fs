@@ -6,7 +6,8 @@ void Compiler::compile(const std::string& path) {
     SourceLocation sl(sm.sources[0]);
     //HashedString hs;
     //while(sl.can_iter())std::cout << (int)advance_token(sl,hs) << " ";
-    parse(sl);
+    Lexer lexer(sl);
+    Parser parser(lexer.lexems);
     /*
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
