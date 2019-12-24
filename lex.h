@@ -20,7 +20,7 @@ class SourceLocation {
     std::string::const_iterator it,end;
     SourceLocation(FSFile& file);
     INLINE constexpr char peek(const int n=0);
-    INLINE char pop(int n=0);
+    INLINE char pop(int n=1);
     INLINE bool can_iter();
     INLINE char peek_();
     INLINE char peek_next();

@@ -8,8 +8,8 @@
 #define clz(n) __builtin_clz(n)
 #define prefetch(ad) __builtin_prefetch(ad,0,1)
 #endif
-#ifdef _MSVC_VER
-#define INLINE __forceinline inline
+#ifdef _MSC_VER
+#define INLINE __forceinline
 #define ALIGN(_n) __declspec(align(_n))
 #define clz(n) __lzcnt(n)
 #define prefetch(ad) _mm_prefetch(ad,3)

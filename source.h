@@ -3,6 +3,7 @@
 #include <vector>
 #include "compatibility.h"
 #include <fstream>
+#include <string>
 
 void error(int code,const std::string& msg);
 struct FSFile {

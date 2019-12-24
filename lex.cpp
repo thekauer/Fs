@@ -160,12 +160,14 @@ INLINE char SourceLocation::peek_nextnext() {
 
 INLINE char SourceLocation::pop(int n) {
     char r=peek(n);
-    it+=n+1;
+    it+=n;
     col++;
     prefetch(&it);
     current=next;
     next=nextnext;
-    nextnext=*(it+2);
+    if (can_iter()) {
+        nextnext = *it;
+    }
     return r;
 }
 
