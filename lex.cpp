@@ -162,7 +162,7 @@ INLINE char SourceLocation::pop(int n) {
     char r=peek(n);
     it+=n;
     col++;
-    prefetch(&it);
+    prefetch((const char*)&it);
     current=next;
     next=nextnext;
     if (can_iter()) {
